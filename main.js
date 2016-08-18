@@ -1,30 +1,8 @@
-function getRandomVideoString(){
-	var videos = ['3iHh3d0-pWo', 'iVvRWU1RTsk', 'IOwTAiat1vg', 'goMixt-6fEs', 'BYenGCnSryk', 'aK_DHwH8Q-M']
-	var randomVideoIndex = Math.floor(Math.random() * (videos.length - 1));
-	return videos[randomVideoIndex];
-}
-
-function getRandomVideoUrl(){
-	var randomVideoString = getRandomVideoString();
-	return 'https://www.youtube.com/embed/' + randomVideoString + '?autoplay=1'
-}
-document.getElementById('ytplayer').src = getRandomVideoUrl();
-
-function createVideoStrings(data) {
-
-}
-
+var videos;
 var rssString = 'https://www.reddit.com/r/videos.rss';
 $.ajax({
   type: 'GET',
   url: rssString,
-
-  // The 'contentType' property sets the 'Content-Type' header.
-  // The JQuery default for this property is
-  // 'application/x-www-form-urlencoded; charset=UTF-8', which does not trigger
-  // a preflight. If you set this value to anything other than
-  // application/x-www-form-urlencoded, multipart/form-data, or text/plain,
-  // you will trigger a preflight request.
   contentType: 'text/plain',
 
   xhrFields: {
@@ -35,7 +13,9 @@ $.ajax({
   },
 
   success: function(data) {
-  	console.log(data);
+  	videos = createVideoStrings(data);
+  	// console.log("videos", videos);
+
   },
 
   error: function() {
@@ -44,4 +24,40 @@ $.ajax({
     // this function will still fire, but there won't be any additional
     // information about the error.
   }
+}).done(function(){
+	console.log("videos in .done", videos);
+	document.getElementById('ytplayer').src = getRandomVideoUrl(videos);
 });
+
+
+function getRandomVideoString(videos){
+	var videoUrls = videos;
+	var randomVideoIndex = Math.floor(Math.random() * (videoUrls.length - 1));
+	return videoUrls[randomVideoIndex];
+}
+
+function getRandomVideoUrl(videos){
+	console.log("videos in getRandom", videos)
+	var randomVideoString = getRandomVideoString(videos);
+	return 'https://www.youtube.com/embed/' + randomVideoString + '?autoplay=1'
+}
+
+function createVideoStrings(data) {
+	var contentStrings = [];
+	// console.log(data)
+	var $entries = $(data).find('entry');
+	// console.log($entries);
+	for (var entry of $entries) {
+		// var parsed = $.parseXML(entry.innerText);
+		// console.log(parsed);
+		var inner = $.parseHTML(entry.innerHTML)[2].textContent;
+		var yurlReg = inner.match(/v=([a-zA-Z0-9\_\-]+)&?/);
+		if (yurlReg !== null) {
+			contentStrings.push(yurlReg[1]);
+		}
+		// var yurl = yurlReg[1];
+		// contentStrings.push(yurl);
+	}
+	return contentStrings;
+}
+
