@@ -14,4 +14,9 @@
     "activeTab",
     "https://ajax.googleapis.com/"
   ]
+  // "content_scripts": [
+  // {
+  //   "js": ["main.js"]
+  //   }
+  // ]
 }
