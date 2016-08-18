@@ -1,12 +1,23 @@
 var feeds = ['https://www.reddit.com/r/youtubehaiku/.rss', 'https://www.reddit.com/r/woahtube.rss', 'https://www.reddit.com/r/trailers.rss', 'https://www.reddit.com/r/Prematurecelebration.rss', 'https://www.reddit.com/r/SoundsLikeMusic.rss', 'https://www.reddit.com/r/videos.rss'];
 var videos = [];
-
+var watched;
+chrome.storage.local.get('watched', function(data){
+	watched = data['watched'] || {};
+});
 //check to see if there are videos in local storage
 //initialize watched in storage
+//get randomvid url
+//if 
 chrome.storage.local.get('videos', function(data){
 	if (data['videos']) {
 		console.log('storage data hit');
-		document.getElementById('ytplayer').src = getRandomVideoUrl(data['videos']);
+		var randomUrl = getRandomVideoUrl(data['videos']);
+		while (watched && watched[randomUrl] && data['videos'].length > 1){
+			randomUrl = getRandomVideoUrl(data['videos']);
+		}
+		document.getElementById('ytplayer').src = randomUrl;
+		watched[randomUrl] = true;
+		chrome.storage.local.set({"watched": watched});
 	} else {
 		$.when(getLinkArray(feeds[0]),
 		       getLinkArray(feeds[1]), 
@@ -15,13 +26,38 @@ chrome.storage.local.get('videos', function(data){
 		 	   getLinkArray(feeds[4]),
 		  	   getLinkArray(feeds[5]))
 		.done(function(){
-			document.getElementById('ytplayer').src = getRandomVideoUrl(videos);
+			var randomUrl = getRandomVideoUrl(videos);
+			while (watched && watched[randomUrl] && videos.length > 1){
+				randomUrl = getRandomVideoUrl(videos);
+
+			}
+			document.getElementById('ytplayer').src = randomUrl;
+			watched[randomUrl] = true;
 			chrome.storage.local.set({'videos': videos}, function(){
 				console.log("the videos were saved");
 			});
+			chrome.storage.local.set({"watched": watched});
 		})
 	}
 });
+
+// if (sessionStorage.videos) {
+// 	console.log("Session storage hit");
+// 	var storedVideoArray = sessionStorage.videos.split(",");
+// 	document.getElementById('ytplayer').src = getRandomVideoUrl(storedVideoArray);
+// } else {
+// 	$.when(getLinkArray(feeds[0]),
+// 		   getLinkArray(feeds[1]), 
+//  		   getLinkArray(feeds[2]), 
+// 		   getLinkArray(feeds[3]),
+// 		   getLinkArray(feeds[4]),
+// 		   getLinkArray(feeds[5]))
+// 		.done(function(){
+// 			document.getElementById('ytplayer').src = getRandomVideoUrl(videos);
+// 			sessionStorage.videos = videos;
+// 		})
+// }
+
 
 function getRandomVideoString(videos) {
   var videoUrls = videos;
@@ -68,3 +104,21 @@ function getLinkArray(feed){
 	    }
 	  });
 }
+
+// $.when(getLinkArray(feeds[0]),
+// 		   getLinkArray(feeds[1]), 
+//  		   getLinkArray(feeds[2]), 
+// 		   getLinkArray(feeds[3]),
+// 		   getLinkArray(feeds[4]),
+// 		   getLinkArray(feeds[5]))
+// 		.done(function(){
+// 			document.getElementById('ytplayer').src = getRandomVideoUrl(videos);
+// 			chrome.storage.local.set({'videos': videos}, function(){
+// 				console.log("the videos were saved");
+// 				});
+// 			// sessionStorage.videos = videos;
+// 			// console.log(sessionStorage);
+// 			// chrome.storage.local.get('videos', function(data){
+// 			// 		console.log("got videos", data);
+// 			// });
+// 		})
